@@ -13,4 +13,5 @@
 4. Ec2 instance setup
   *  Create a new ubuntu ec2 instance and attach the network interface to it
   *  Install httpd server on it
+
 [Project] (Project)
