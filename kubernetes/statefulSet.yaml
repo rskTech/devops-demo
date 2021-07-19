@@ -1,17 +1,50 @@
-apiVersion: v1
-kind: Service
+# Create Storage Class
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
 metadata:
-  name: nginx
-  labels:
-    app: nginx
-spec:
-  ports:
-  - port: 80
-    name: web
-  clusterIP: None
-  selector:
-    app: nginx
+  name: manual
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
 ---
+# Create 2 PVs
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+ name: nginx-pv-1
+ labels:
+  type: local
+  app: nginx
+spec:
+ storageClassName: manual
+ capacity:
+  storage: 1Gi
+ accessModes:
+ - ReadWriteOnce
+ hostPath:
+  path: "/home/edureka/data1"
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+ name: nginx-pv-2
+ labels:
+  type: local
+  app: nginx
+spec:
+ storageClassName: manual
+ capacity:
+  storage: 1Gi
+ accessModes:
+ - ReadWriteOnce
+ hostPath:
+  path: "/home/edureka/data2"
+  
+---
+# Create StatefulSet
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -42,7 +75,23 @@ spec:
       name: www
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "gp2"
+      storageClassName: "manual"
       resources:
         requests:
           storage: 1Gi
+---
+# Create Service to expose the statefulSet
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
